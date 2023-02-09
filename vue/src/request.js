@@ -1,4 +1,5 @@
 import axios from 'axios'
+import {ElNotification} from "element-plus";
 
 const request = axios.create({
     baseURL: 'http://localhost:9090',  // 注意！！ 这里是全局统一加上了 后端接口前缀 前缀，后端必须进行跨域配置！
@@ -21,6 +22,7 @@ request.interceptors.request.use(config => {
 // 可以在接口响应后统一处理结果
 request.interceptors.response.use(
     response => {
+
         let res = response.data;
         // 如果是返回的文件
         if (response.config.responseType === 'blob') {
@@ -33,7 +35,13 @@ request.interceptors.response.use(
         return res;
     },
     error => {
-        console.log('err' + error) // for debug
+        console.log( error) // for debug
+        if(error.response.status !== 200){
+            ElNotification({
+                type:'error',
+                message:'接口异常'
+            })
+        }
         return Promise.reject(error)
     }
 )

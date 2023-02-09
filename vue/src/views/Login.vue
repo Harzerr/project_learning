@@ -33,7 +33,6 @@
       <h1 style="text-align: center; margin-bottom: 30px;font-size: large">Login</h1>
       <el-form
           :model="user"
-
           :rules="rules"
           :label-position="labelPostion"
           label-width="100px"
@@ -57,6 +56,7 @@ import {ref, reactive, getCurrentInstance} from 'vue'
 import {User, Lock} from '@element-plus/icons-vue'
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import request from"../request";
+import router from "../router";
 
 const {proxy} = getCurrentInstance()
 
@@ -72,28 +72,24 @@ const rules = reactive({
   ]
 })
 
-const user = reactive({
-  username:'User name'
-})
-const changeUser = (username) => {//修改对象的属性时，名字可以一样
-  user.username = username
-}
+const user = reactive({})
 const login = ()=>{
   //console.log(proxy.$refs.ruleFormRef)
   proxy.$refs.ruleFormRef.validate((valid)=>{
     if(valid){
       //验证成功，向后台发送请求 http://localhost:9090
       //{"code":"200", "msg":"" , "data":null}
-      request.post("/user/login").then(res =>{
-         if(res.code === "200"){
+      request.post("/user/login", user).then(res =>{
+         if(res){
            ElNotification({
-             type:'success',
-             message:'用户名或密码错误'
+             type: 'success',
+             message:'登陆成功'
            })
+           router.push('/')
          }else{
            ElMessage({
              type:'error',
-             message:res.msg,
+             message:'登陆失败',
            })
          }
       })
