@@ -9,7 +9,7 @@
           @select="handleSelect"
       >
         <el-menu-item index="0">LOGO</el-menu-item>
-        <div class="flex-grow" />
+        <div class="flex-grow"/>
         <el-menu-item index="1">注册</el-menu-item>
         <el-sub-menu index="2">
           <template #title>关于</template>
@@ -28,7 +28,7 @@
       </el-menu>
     </header>
   </div>
-  <div >
+  <div>
     <div style="max-width: 300px; margin: 100px auto; ">
       <h1 style="text-align: center; margin-bottom: 30px;font-size: large">Login</h1>
       <el-form
@@ -37,11 +37,11 @@
           :label-position="labelPostion"
           label-width="100px"
           ref="ruleFormRef">
-        <el-form-item prop="username"  label="用户名">
-          <el-input v-model="user.username" :prefix-icon="User"  />
+        <el-form-item prop="username" label="用户名">
+          <el-input v-model="user.username" :prefix-icon="User"/>
         </el-form-item>
         <el-form-item prop="password" label="密码">
-          <el-input v-model="user.password"  :prefix-icon="Lock" show-password />
+          <el-input v-model="user.password" :prefix-icon="Lock" show-password/>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" style="width: 100%" @click="login">登录</el-button>
@@ -55,49 +55,66 @@
 import {ref, reactive, getCurrentInstance} from 'vue'
 import {User, Lock} from '@element-plus/icons-vue'
 import {ElMessage, ElMessageBox, ElNotification} from "element-plus";
-import request from"../request";
+import request from "../request";
 import router from "../router";
 
 const {proxy} = getCurrentInstance()
 
 const labelPosition = ref('right')
 const rules = reactive({
-  username:[
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 12, message: 'Length should be 3 to 12', trigger: 'blur' },
+  username: [
+    {
+      required: true,
+      message: '请输入用户名',
+      trigger: 'blur'
+    },
+    {
+      min: 3,
+      max: 12,
+      message: '长度范围保持在3~12个字符',
+      trigger: 'blur'
+    },
   ],
-  password:[
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 16, message: 'Length should be 6 to 16', trigger: 'blur' },
+  password: [
+    {
+      required: true,
+      message: '请输入密码',
+      trigger: 'blur'
+    },
+    {
+      min: 6,
+      max: 16,
+      message: '长度范围保持在6~16个字符',
+      trigger: 'blur'
+    },
   ]
 })
 
 const user = reactive({})
-const login = ()=>{
+const login = () => {
   //console.log(proxy.$refs.ruleFormRef)
-  proxy.$refs.ruleFormRef.validate((valid)=>{
-    if(valid){
+  proxy.$refs.ruleFormRef.validate((valid) => {
+    if (valid) {
       //验证成功，向后台发送请求 http://localhost:9090
       //{"code":"200", "msg":"" , "data":null}
-      request.post("/user/login", user).then(res =>{
-         if(res){
-           ElNotification({
-             type: 'success',
-             message:'登陆成功'
-           })
-           router.push('/')
-         }else{
-           ElMessage({
-             type:'error',
-             message:'登陆失败',
-           })
-         }
+      request.post("/user/login", user).then(res => {
+        if (res.code === '200') {
+          ElNotification({
+            type: 'success',
+            message: '登陆成功'
+          })
+          router.push('/')
+        } else {
+          ElMessage({
+            type: 'error',
+            message:res.msg,
+          })
+        }
       })
-    }
-    else{
+    } else {
       ElMessage({
-        type:'error',
-        message:'用户名或密码错误'
+        type: 'error',
+        message: '用户名或密码错误'
       })
     }
   })

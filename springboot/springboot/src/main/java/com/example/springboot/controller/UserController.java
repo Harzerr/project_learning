@@ -1,5 +1,6 @@
 package com.example.springboot.controller;
 
+        import com.example.springboot.common.Result;
         import com.example.springboot.dao.UserDao;
         import com.example.springboot.entity.User;
         import org.springframework.beans.factory.annotation.Autowired;
@@ -22,53 +23,54 @@ public class UserController {
 
 
     @GetMapping("/{id}")
-    public User findById(@PathVariable Integer id){
-        return userDao.getByID(id);
+    public Result findById(@PathVariable Integer id){
+        return Result.success(userDao.getByID(id));
     }
     @GetMapping
-    public List<User> findAll(){
-
-        return userDao.findall();
+    public Result findAll(){
+        return Result.success(userDao.findall());
     }
 
     @GetMapping("/uniqueQuery")
-    public User uniqueQuery(String username, String password){
-        return userDao.getByUser(username, password);
+    public Result uniqueQuery(String username, String password){
+        return Result.success(userDao.getByUser(username, password));
     }
 
     @PostMapping
-    public int save(@Validated @RequestBody User user){
+    public Result save(@Validated @RequestBody User user){
 //        @Validated增加判断，增强健壮性,自写逻辑也可以
         if(user.getUsername()==null || user.getPassword() == null){
-            throw new RuntimeException("参数为空");
+            Result.error("参数为空");
         }
-        return userDao.insert(user);
+
+        return Result.success(userDao.insert(user));
     }
 
     @PutMapping
-    public void update(@RequestBody User user){
+    public Result update(@RequestBody User user){
         if(user.getId() == null){
-            throw new RuntimeException("参数为空");
+            Result.error("参数为空");
         }
-        userDao.update(user);
+
+        return Result.success(userDao.update(user));
     }
     @DeleteMapping("/{id}")
-    public boolean delete(@PathVariable Integer id){
+    public Result delete(@PathVariable Integer id){
         if(id == null || id == 0){
-            throw new RuntimeException("参数为空");
+            return Result.error("账号不存在");
         }
-        return userDao.deleteById(id) == 1;
+        return Result.success(userDao.deleteById(id) == 1);
     }
 
     @PostMapping("/login")
-    public User login(@Validated @RequestBody User user){
+    public Result login(@Validated @RequestBody User user){
         if(user.getUsername()==null || user.getPassword() == null){
-            throw new RuntimeException("参数为空");
+            return Result.error("参数为空");
         }
         User ret = userDao.getByUser(user.getUsername(), user.getPassword());
         if(ret == null ){
-            throw new RuntimeException("用户名或密码错误");
+            return Result.error("用户名或密码错误");
         }
-        return ret;
+        return Result.success(ret);
     }
 }
