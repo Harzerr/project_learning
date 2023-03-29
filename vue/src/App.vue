@@ -1,7 +1,7 @@
 <script  setup>
 import { RouterLink, RouterView } from 'vue-router'
 import { ref, reactive} from 'vue'
-
+ 
 </script>
 
 <style>
