@@ -1,5 +1,6 @@
 package com.example.springboot.dao;
 
+import com.example.springboot.controller.DTO.UserQueryDTO;
 import com.example.springboot.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -18,4 +19,12 @@ public interface UserDao {
     int update(User user);
 
     int deleteById(Integer id);
+
+    List<User> findPage(UserQueryDTO userQueryDTO);
+
+
+
+    long count(UserQueryDTO userQueryDTO);
+
+    List<User> findByOptions(UserQueryDTO userQueryDTO);
 }

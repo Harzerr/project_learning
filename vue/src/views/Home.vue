@@ -90,8 +90,16 @@
     <!--    <el-col :span="20">-->
     <div class="grid-content ep-bg-purple "
          style=" margin-top:20px; margin-left:4%; margin-left: 5%; width: 80% ; border: 1px  solid   #ecf5ff; box-shadow: 8px 8px 10px 2px  #79bbff; ">
-      是否显示表格:
-      <el-switch v-model="parentBorder"/>
+     <div style="margin-left: 10px; margin-top: 6px; margin-bottom: 2px">
+       是否显示表格:
+       <el-switch v-model="parentBorder"/>
+       <el-input v-model="username" style="width: 150px; height: 24px; margin-left: 20px" placeholder="请输入要查询的用户名" clearable></el-input>
+       <el-input v-model="phone" style="width: 150px; height: 24px; margin-left: 20px" placeholder="请输入要查询的手机号" clearable></el-input>
+       <el-input v-model="email" style="width: 150px; height: 24px; margin-left: 20px" placeholder="请输入要查询的邮箱" clearable></el-input>
+       <el-button type="primary" style="width: 60px; height: 24px;  margin-left: 5px " @click="load">
+         <el-icon><Search /></el-icon>查询
+       </el-button>
+     </div>
 
       <el-table :data="filterTableData" stripe :table-layout="tableLayout"  max-height="400" max-width="300" :border="parentBorder" :header-cell-style="{'text-align':'center'}">
         <el-table-column  label="id" prop="id" width="80" align="center" />
@@ -119,12 +127,9 @@
 
 
         <el-table-column fixed="right" label="操作" width="180">
-<!--          <template #header>-->
-<!--            <el-input fixed="right" v-model="search" size="small" placeholder="Type to search" />-->
-<!--          </template>-->
           <template #default="scope">
 
-            <el-button size="small" @click="handleEdit(scope.$index, scope.row)">
+            <el-button size="small" @click="handleEdit(scope.$index, scope.row) " style="margin-left: 22px">
               <el-icon size="size" color="#409EFF" style="margin-right: 4px">
                 <Edit/>
               </el-icon>
@@ -143,6 +148,21 @@
           </template>
         </el-table-column>
       </el-table>
+      <div style="width:100%;margin-left: 25%;margin-right: 25%; margin-top: 6px">
+        <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[1, 5, 8, 20]"
+            :small="false"
+            :disabled="false"
+            :background="true"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="totalItem"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+        />
+      </div>
+<!--      新增-->
       <div style="margin:5px" text @click="handleAdd">
         <el-button class="mt-4" @click="handleAdd" :icon="Plus" color=" #337ecc">Add Item</el-button>
       </div>
@@ -193,7 +213,7 @@
 <script lang="ts" setup>
 import {computed, getCurrentInstance, reactive, ref} from 'vue';
 import request from "../request";
-import {Plus, Delete, Edit, ArrowRightBold} from '@element-plus/icons-vue'
+import {Plus, Delete, Edit, ArrowRightBold, Search} from '@element-plus/icons-vue'
 import {
   Document,
   Menu as IconMenu,
@@ -206,18 +226,27 @@ const {proxy} = getCurrentInstance()
 
 // 属性
 const dialogFormVisible = ref(false)
-const formLabelWidth = '140px'
 const parentBorder = ref(false)
 const search = ref('')
 const isCollapse = ref(true)
 const tableLayout = ref('fixed')
-const checkEmail=(rule, value, callback)=>{
+const currentPage = ref(1)
+const totalItem = ref(0)
+const pageSize = ref(8)
+const username = ref('')
+const email = ref('')
+const phone = ref('')
+const address = ref('')
+const age = ref('')
+
+const checkEmail=(rule, value, callback)=>{ //state.rule中调用，要放在被调用之前
   const regEmail = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(\.[a-zA-Z0-9_-])+/;
   if(!regEmail.test(value)){
     return callback(new Error("邮箱格式错误"))
   }
   callback()
 }
+
 // 自定义接口
 interface User {
   id: BigInteger
@@ -282,7 +311,14 @@ const state = reactive({
 
 
 //每次刷新都要调用的
-
+const handleSizeChange = (val: number) => {
+  pageSize.value = val
+  load()
+}
+const handleCurrentChange = (val: number) => {
+ currentPage.value = val
+ load()
+}
 const handleAdd = () => {
   dialogFormVisible.value = true
   state.form = {}//数据初始化
@@ -311,10 +347,26 @@ const handleDelete = (id) => {
     load()
   })
 }
+const filterTableData = computed(() =>
+    state.tableData.filter(
+        (data) =>
+            !search.value ||
+            data.name.toLowerCase().includes(search.value.toLowerCase())
+    )
+)
 const load = () => {
-  request.get("/user").then(res => {
+  request.get("/user/page",{
+    params:{
+      currentPage:currentPage.value,
+      pageSize:pageSize.value,
+      username:username.value,
+      phone:phone.value,
+      email:email.value,
+    }
+  }).then(res => {
     if(res.code === '200'){
-      state.tableData = res.data
+      state.tableData = res.data.data
+      totalItem.value = res.data.totalItem
     }else{
       ElMessage.error(res.msg)
     }
@@ -355,12 +407,6 @@ const save = () => {
     }
   })
 }
-const filterTableData = computed(() =>
-    state.tableData.filter(
-        (data) =>
-            !search.value ||
-            data.name.toLowerCase().includes(search.value.toLowerCase())
-    ))
 
 </script>
 <style scoped lang="scss">

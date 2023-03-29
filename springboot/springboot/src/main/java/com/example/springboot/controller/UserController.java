@@ -1,8 +1,11 @@
 package com.example.springboot.controller;
 
         import com.example.springboot.common.Result;
+        import com.example.springboot.controller.DTO.UserQueryDTO;
         import com.example.springboot.dao.UserDao;
         import com.example.springboot.entity.User;
+        import com.github.pagehelper.PageHelper;
+        import com.github.pagehelper.PageInfo;
         import org.springframework.beans.factory.annotation.Autowired;
         import org.springframework.boot.SpringApplication;
         import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,7 +14,9 @@ package com.example.springboot.controller;
 
         import javax.annotation.Resource;
         import java.util.ArrayList;
+        import java.util.HashMap;
         import java.util.List;
+        import java.util.Map;
 
 @SpringBootApplication
 @RestController//组合式注解，专用于开发Restful接口
@@ -29,6 +34,36 @@ public class UserController {
     @GetMapping
     public Result findAll(){
         return Result.success(userDao.findall());
+    }
+
+    @GetMapping("/page")// /user/page？currentPage=1&pageSize=10
+    public Result findPage(UserQueryDTO userQueryDTO){
+        Integer currentPage = userQueryDTO.getCurrentPage();
+        Integer pageSize = userQueryDTO.getPageSize();
+
+
+        if (currentPage == null || currentPage <= 0 || pageSize == null || pageSize < 1){
+            return Result.error("参数错误");
+        }
+        Integer pageNum = (currentPage - 1) * pageSize;
+        userQueryDTO.setPageCount(pageNum);
+        List<User> users = userDao.findPage(userQueryDTO);
+        long totalItem = userDao.count(userQueryDTO);
+        Map<String,Object> map = new HashMap<>();
+        map.put("data", users);
+        map.put("totalItem", totalItem);
+        return Result.success(map);
+
+//        !!!使用pagehelper
+//        PageHelper.startPage(currentPage, pageSize);
+//        List<User> users = userDao.findByOptions(userQueryDTO);
+//        PageInfo<User> pageInfo = new PageInfo<>(users);
+//        pageInfo.setList(users);
+//        pageInfo.setPageNum(currentPage);
+//        pageInfo.setPages(pageSize);
+//        return Result.success(pageInfo);
+
+
     }
 
     @GetMapping("/uniqueQuery")
